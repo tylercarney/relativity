@@ -1,0 +1,13 @@
+What we break down/can act on:
+
+
+Hostname
+FQDN
+Subdomain
+URL
+Route
+IP address (v4/6)
+Host/IP pairing
+Gateways
+
+
