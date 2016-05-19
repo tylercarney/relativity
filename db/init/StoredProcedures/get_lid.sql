@@ -1,0 +1,6 @@
+USE RelativityDB;
+DROP PROCEDURE IF EXISTS get_lid;
+DELIMITER $$
+CREATE PROCEDURE `get_lid` (OUT lid bigint(64)) BEGIN
+	SET lid=LAST_INSERT_ID();
+END$$

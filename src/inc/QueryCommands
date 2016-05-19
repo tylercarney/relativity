@@ -1,0 +1,98 @@
+<?php
+// Super primitive and vulnerable to shell injection but this is a prototype...
+// TODO: consider how to make this less dangerous.
+
+require_once('util');
+
+function genEx($command) {
+// Let user defined commands be run...
+// Yeah.
+// Be careful with that ;)
+
+// $command will be the shell command executed
+// Eventually we'll be able to simulate | via STDIN
+// For now we still set up the plumbing and get STDOUT and STDERR wired up
+
+	$descriptorspec = array(
+	   0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+	   1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
+	   2 => array("pipe", "w") // stderr is a pipe to write to
+	);
+
+	$cwd = '/tmp';
+	$env = array();
+
+	$process = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
+
+	if (is_resource($process)) {
+	// $pipes now looks like this:
+	// 0 => writeable handle connected to child stdin
+	// 1 => readable handle connected to child stdout
+	// 2 => readable handle connecte to chile stderr
+
+	// build a string to return instead of puking it up here
+		$result = "";
+		$result .= "\ncommand: $command\n";
+		$result .= "\npipe[1] (STDOUT):\n";
+		$result .= stream_get_contents($pipes[1]);
+		$result .= "\npipe[2] (STDERR):\n";
+		$result .= stream_get_contents($pipes[2]);
+	
+	// It is important that you close any pipes before calling
+	// proc_close in order to avoid a deadlock
+		foreach($pipes as $pipe) {
+			fclose($pipe);
+		}
+		$return_value = proc_close($process);
+
+		$result .= "\ncommand returned $return_value\n";
+
+// prototype for finding IP addresses
+	echo "<pre>";
+	$matches = match_fqdn($result);
+	print_r($matches);
+echo "\n\n\n\n\n\n\n\n";
+	$matches = match_IPv4($result);
+	print_r($matches);
+echo "\n\n\n\n\n\n\n\n";
+	$matches = match_IPv6($result);
+	print_r($matches);
+	echo "</pre><hr>\n";
+// end prototype IP finder
+
+		return $result;
+	}
+
+}
+
+
+function whois($domain) {
+	$command = "whois "."$domain";
+	//exec($command,$response);
+	$response = genEx($command);
+	return $response;
+}
+
+function traceroute($domain) {
+	$command = "/usr/sbin/traceroute ".$domain;
+	$response = array();
+	//exec($command,$response);
+	$response = genEx($command);
+	return $response;
+}
+
+function dig($domain) {
+	$command = "dig ".$domain." ANY";
+	$response = array();
+	//exec($command,$response);
+	$response = genEx($command);
+	return $response;
+}
+
+function rcurl($domain) {
+	$command = "curl ".$domain;
+	$response = array();
+	//exec($command,$response);
+	$response = genEx($command);
+	return $response;
+}
